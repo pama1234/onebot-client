@@ -1,13 +1,13 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 version = project.client_version
 group = project.maven_group
 
-def targetJavaVersion = 8
+def targetJavaVersion = 17
 
 tasks.withType(JavaCompile).configureEach {
     it.options.encoding = "UTF-8"
@@ -103,4 +103,8 @@ publishing {
             }
         }
     }
+}
+
+publishShadowPublicationToMavenLocal {
+    inputs.files(jar)
 }
