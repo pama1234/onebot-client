@@ -24,13 +24,14 @@ _✨ 基于java开发的 [OneBot](https://github.com/howmanybots/onebot/blob/mas
 ### 使用api进行请求
 ```java
 public class WebSocketClientTest {
-    public static void sendApi(String[] args) throws Exception {
-        LinkedBlockingQueue<String> blockingQueue = new LinkedBlockingQueue<>();//使用队列传输数据
-        ModWebSocketClient service = ConnectFactory.createWebsocketClient(new BotConfig("ws://127.0.0.1:8080"),blockingQueue);
-        service.create();//创建websocket客户端
-        Bot oneBotClient = service.createBot();//创建机器人实例，以调用api
-        oneBotClient.sendGroupMsg(123456, MsgUtils.builder().text("123").build(), true);//发送群消息
-        GroupMemberInfoResp sender = oneBotClient.getGroupMemberInfo(123456, 123456, false).getData();//获取响应的群成员信息
+    public static OneBotClient onebot;
+    public static void sendApi(String[] args) {
+        onebot = OneBotClient.create(new BotConfig("ws://127.0.0.1:8080"))//创建websocket客户端
+                .open()//连接onebot服务端
+                .registerEvents(new EventListeners());//注册事件监听器
+
+        onebot.getBot().sendGroupMsg(123456, MsgUtils.builder().text("123").build(), true);//发送群消息
+        GroupMemberInfoResp sender = onebot.getBot().getGroupMemberInfo(123456, 123456, false).getData();//获取响应的群成员信息
         System.out.println(sender.toString());//打印
     }
 }
@@ -38,48 +39,38 @@ public class WebSocketClientTest {
 
 ### 事件监听示例
 ```java
+public class EventListeners implements Listener{
+    @SubscribeEvent
+    public void onGroup(GroupMessageEvent event){
+        System.out.println(event);
+    }
+}
+
 public class WebSocketClientTest {
-    public static void eventListener(String[] args) throws Exception {
-        LinkedBlockingQueue<String> blockingQueue = new LinkedBlockingQueue<>();//使用队列传输数据
-        ModWebSocketClient service = ConnectFactory.createWebsocketClient(new BotConfig("ws://127.0.0.1:8080"),blockingQueue);
-        service.create();//创建websocket客户端
-        EventDispatchers dispatchers = new EventDispatchers(blockingQueue);//创建事件分发器
-        GroupMessageListener groupMessageListener = new GroupMessageListener();//自定义监听规则
-        groupMessageListener.addHandler("天气", new Handler<GroupMessageEvent>() {
-            @Override
-            public void handle(GroupMessageEvent groupMessage) {
-                System.out.println(groupMessage);
+    public static OneBotClient onebot;
+    public static void main(String[] args){
+        onebot = OneBotClient.create(new BotConfig("ws://127.0.0.1:8080"))//创建websocket客户端
+                .open()//连接onebot服务端
+                .registerEvents(new EventListeners());//注册事件监听器
+    }
 
-            }
-        });//匹配关键字监听
-        dispatchers.addListener(groupMessageListener);//注册监听
-        dispatchers.addListener(new SimpleListener<PrivateMessageEvent>() {//私聊监听
-            @Override
-            public void onMessage(PrivateMessageEvent privateMessage) {
-                System.out.println(privateMessage);
-            }
-        });//快速监听
-
-        dispatchers.start(10);//线程组处理任务
-
+    public static void stopped() {
+        if (onebot != null) onebot.close();
     }
 }
 ```
 
 # Client
 
-OneBot-Client 以 [OneBot-v11](https://github.com/howmanybots/onebot/tree/master/v11/specs) 标准协议进行开发，兼容所有支持正向WebSocket的OneBot协议客户端
+OneBot-Client 以 [OneBot-v11](https://github.com/howmanybots/onebot/tree/master/v11/specs) 标准协议进行开发，兼容所有支持正向WebSocket的OneBot协议端
 
-| 项目地址                                                                           | 平台                                            | 核心作者           | 备注                                                                       |
-|--------------------------------------------------------------------------------|-----------------------------------------------|----------------|--------------------------------------------------------------------------|
-| [koishijs/koishi](https://github.com/koishijs/koishi)                          | [koishi](https://koishi.js.org/)              | shigma         |                                                                          |
-| [onebot-walle/walle-q](https://github.com/onebot-walle/walle-q)                |                                               | abrahum        |                                                                          |
-| [Yiwen-Chan/OneBot-YaYa](https://github.com/Yiwen-Chan/OneBot-YaYa)            | [先驱](https://www.xianqubot.com/)              | kanri          |                                                                          |
-| [richardchien/coolq-http-api](https://github.com/richardchien/coolq-http-api)  | CKYU                                          | richardchien   | 可在 Mirai 平台使用 [mirai-native](https://github.com/iTXTech/mirai-native) 加载 |
-| [Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp)                          | [MiraiGo](https://github.com/Mrs4s/MiraiGo)   | Mrs4s          |                                                                          |
-| [yyuueexxiinngg/OneBot-Mirai](https://github.com/yyuueexxiinngg/onebot-kotlin) | [Mirai](https://github.com/mamoe/mirai)       | yyuueexxiinngg |                                                                          |
-| [takayama-lily/onebot](https://github.com/takayama-lily/onebot)                | [OICQ](https://github.com/takayama-lily/oicq) | takayama       |                                                                          |
-
+| 项目地址                                                                              | 核心作者           | 备注                                                                    |
+|-----------------------------------------------------------------------------------|----------------|-----------------------------------------------------------------------|
+| [Overflow](https://github.com/MrXiaoM/Overflow)                                   | MrXiaoM        | 实现 mirai 的无缝迁移                                                        |
+| [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core)                     | NepPure        | C#实现 By Konata.Core                                                   |
+| [OpenShamrock](https://github.com/whitechi73/OpenShamrock)                        | whitechi73     | Xposed框架hook实现                                                        |
+| [Gensokyo](https://github.com/Hoshinonyaruko/Gensokyo)                            | Hoshinonyaruko | 基于官方api 轻量 原生跨平台                                                      |
+| [LLOnebot](https://github.com/LLOneBot/LLOneBot)                                  | linyuchen      | 使用[LiteLoaderQQNT](https://github.com/LiteLoaderQQNT/LiteLoaderQQNT)  |
 
 # Credits
 
@@ -98,9 +89,9 @@ source product.
 
 # Thanks
 
-Thanks [JetBrains](https://www.jetbrains.com/?from=Shiro) Provide Free License Support OpenSource Project
+Thanks [JetBrains](https://www.jetbrains.com/?from=onebot-client) Provide Free License Support OpenSource Project
 
-[<img src="https://mikuac.com/images/jetbrains-variant-3.png" width="200"/>](https://www.jetbrains.com/?from=mirai)
+[<img src="https://mikuac.com/images/jetbrains-variant-3.png" width="200"/>](https://www.jetbrains.com/?from=onebot-client)
 
 ## Stargazers over time
 

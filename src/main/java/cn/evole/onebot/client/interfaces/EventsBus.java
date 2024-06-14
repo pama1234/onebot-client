@@ -13,7 +13,7 @@ import cn.evole.onebot.sdk.event.Event;
 public interface EventsBus {
     void callEvent(Event event);
 
-    void register(Listener var2);
+    void register(Listener listener);
 
-    void unregister(Listener var1);
+    void unregister(Listener listener);
 }
